@@ -102,6 +102,10 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	/* Set the swap interval for the current context, i.e. the number of screen updates to wait
+	from the time glfwSwapBuffers was called before swapping the buffers and returning */
+	glfwSwapInterval(1);
+
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "glew init error" << std::endl;
@@ -142,13 +146,28 @@ int main(void)
 	unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
 	glUseProgram(shader);
 
+	/* Retrieve the location of the u_Color variable from the shader we just bound */
+	int uColorLocation = glGetUniformLocation(shader, "u_Color");
+	//ASSERT(uColorLocation != -1);
+
+	float red = 0.0f;
+	float increment = 0.05f;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		/* Uniforms are set per draw, i.e. before a draw call! */
+		glUniform4f(uColorLocation, red, 0.3f, 0.8f, 1.0f);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+		/* Change the red color */
+		if (red > 1.0f)
+			increment = -0.05f;
+		else if (red < 0.0f)
+			increment = 0.05f;
+		red += increment;
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
