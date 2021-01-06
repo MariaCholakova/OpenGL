@@ -90,6 +90,10 @@ int main(void)
 	/* Initialize the library */
 	if (!glfwInit())
 		return -1;
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -124,12 +128,20 @@ int main(void)
 		2, 3, 0
 	};
 
+	/* Generate a vertex array object and bind it */
+	unsigned int vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	/* Generate a buffer array object and bind it */
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
+	/* Link the buffer to the vao */
 	glEnableVertexAttribArray(0);
+	/* Set index 0 of the currently bound vertex array (vao) to point to the currently bound GL_ARRAY_BUFFER (buffer) */
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 	
 	unsigned int ibo;  // ibo stands for index buffer object
@@ -150,6 +162,12 @@ int main(void)
 	int uColorLocation = glGetUniformLocation(shader, "u_Color");
 	//ASSERT(uColorLocation != -1);
 
+	/* Unbind everything - clear the state */
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	float red = 0.0f;
 	float increment = 0.05f;
 	/* Loop until the user closes the window */
@@ -158,8 +176,13 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glUseProgram(shader);
 		/* Uniforms are set per draw, i.e. before a draw call! */
 		glUniform4f(uColorLocation, red, 0.3f, 0.8f, 1.0f);
+		
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		/* Change the red color */
