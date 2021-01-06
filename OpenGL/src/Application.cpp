@@ -1,4 +1,7 @@
 #include "Error.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -135,20 +138,14 @@ int main(void)
 	GLCall(glBindVertexArray(vao));
 
 	/* Generate a buffer array object and bind it */
-	unsigned int buffer;
-	GLCall(glGenBuffers(1, &buffer));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
-
+	VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+	
 	/* Link the buffer to the vao */
 	GLCall(glEnableVertexAttribArray(0));
 	/* Set index 0 of the currently bound vertex array (vao) to point to the currently bound GL_ARRAY_BUFFER (buffer) */
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 	
-	unsigned int ibo;  // ibo stands for index buffer object
-	GLCall(glGenBuffers(1, &ibo));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
+	IndexBuffer ib(indices, 6);
 
 	ShaderProgramSource source = parseShader("resources/shaders/Basic.shader");
 	std::cout <<  "VERTEX" << std::endl;
@@ -182,7 +179,7 @@ int main(void)
 		GLCall(glUniform4f(uColorLocation, red, 0.3f, 0.8f, 1.0f));
 		
 		GLCall(glBindVertexArray(vao));
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+		ib.Bind();
 
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
